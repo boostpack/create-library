@@ -1,16 +1,12 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { input, select, confirm } from '@inquirer/prompts';
 import { Eta } from 'eta';
 import { runCommand } from '../core/process';
 import type { CommandContext } from '../core/types';
 import { getToolPackageInfo } from '../core/package-info';
 
-const currentFilename = fileURLToPath(import.meta.url);
-const currentDirname = path.dirname(currentFilename);
-
-const packageRoot = path.resolve(currentDirname, '../../../');
+const packageRoot = path.resolve(__dirname, '../../../');
 const templatesRoot = path.resolve(packageRoot, 'templates');
 const projectTemplateRoot = path.join(templatesRoot);
 

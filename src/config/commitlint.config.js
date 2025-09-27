@@ -88,5 +88,4 @@ module.exports = {
       },
     },
   ],
-  helpUrl: 'https://github.com/boostpack/create-library/blob/main/docs/COMMIT_CONVENTIONS.md',
 };

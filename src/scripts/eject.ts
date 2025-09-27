@@ -1,6 +1,5 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import type { CommandContext } from '../core/types';
 import { runCommand } from '../core/process';
 import { PackageManager, TemplateEngine } from '../core/template-engine';
@@ -32,12 +31,16 @@ function mergeScripts(existing: Record<string, string>, incoming: Record<string,
 }
 
 const filesToCopy: FileCopyDescriptor[] = [
-  { source: '../config/eslint.config.js', target: 'eslint.config.js' },
-  { source: '../config/jest.config.js', target: 'jest.config.js' },
-  { source: '../config/rollup.config.mjs', target: 'rollup.config.mjs' },
-  { source: '../config/tsconfig.json', target: 'tsconfig.json' },
-  { source: '../config/tsconfig.build.json', target: 'tsconfig.build.json' },
-  { source: '../config/tsconfig.test.json', target: 'tsconfig.test.json' },
+  { source: 'config/commitlint.config.js', target: 'eslint.config.js' },
+  { source: 'config/eslint.config.js', target: 'eslint.config.js' },
+  { source: 'config/jest.config.js', target: 'jest.config.js' },
+  { source: 'config/prettier.config.js', target: 'prettier.config.js' },
+  { source: 'config/release.config.js', target: 'release.config.js' },
+  { source: 'config/renovate.config.js', target: 'renovate.config.js' },
+  { source: 'config/rollup.config.mjs', target: 'rollup.config.mjs' },
+  { source: 'config/tsconfig.json', target: 'tsconfig.json' },
+  { source: 'config/tsconfig.build.json', target: 'tsconfig.build.json' },
+  { source: 'config/tsconfig.test.json', target: 'tsconfig.test.json' },
 ];
 
 const packageJsonScripts: Record<string, string> = {
@@ -52,9 +55,7 @@ const packageJsonScripts: Record<string, string> = {
   'semantic-release': 'semantic-release',
 };
 
-const currentFilename = fileURLToPath(import.meta.url);
-const currentDirname = path.dirname(currentFilename);
-const packageRoot = path.resolve(currentDirname, '../../../');
+const packageRoot = path.resolve(__dirname, '../../../');
 
 async function ensureDirectory(filePath: string) {
   const dir = path.dirname(filePath);
@@ -67,7 +68,7 @@ async function copyFile(
   dryRun: boolean,
   logger: CommandContext['logger'],
 ) {
-  const absoluteSource = path.resolve(currentDirname, source);
+  const absoluteSource = path.resolve(packageRoot, source);
   const absoluteTarget = path.join(cwd, target);
 
   if (dryRun) {

@@ -2,7 +2,6 @@
 
 import { Command } from 'commander';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import type { BoostpackScriptsConfig, CommandContext, CommandDefinition, CommandOptionDefinition } from './core/types';
 import { createCommandRegistry } from './core/command-registry';
@@ -15,8 +14,7 @@ import { ejectScript, type EjectCommandOptions } from './scripts/eject';
 import { createBoostpackLibScript, type CreateCommandOptions } from './scripts/create';
 
 const require = createRequire(import.meta.url);
-const currentDirname = path.dirname(fileURLToPath(import.meta.url));
-const pkg = require(path.resolve(currentDirname, '../../package.json')) as { version: string; description?: string };
+const pkg = require(path.resolve(__dirname, '../../package.json')) as { version: string; description?: string };
 
 type AnyOptions = Record<string, unknown>;
 
