@@ -1,0 +1,51 @@
+# Source files
+src/
+test/
+
+# Configuration files
+.changeset/
+.github/
+.vscode/
+.idea/
+
+# Config files
+commitlint.config.js
+eslint.config.js
+templates/default/rollup.config.mjs
+prettier.config.js
+release.config.js
+tsconfig*.json
+
+# Git
+.git/
+.gitignore
+
+# Dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Coverage
+coverage/
+*.lcov
+
+# Build artifacts
+*.tgz
+
+# Environment
+.env*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation source
+docs/
+
+# Temporary files
+*.tmp
+*.temp

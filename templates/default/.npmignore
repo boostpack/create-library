@@ -1,0 +1,54 @@
+# Configuration files
+.changeset/
+.github/
+.gitlab/
+examples/
+
+# Config files
+tsconfig*.json
+rollup.config.mjs
+jest.config.js
+eslint.config.js
+prettier.config.js
+commitlint.config.js
+.lintstagedrc.js
+release.config.js
+renovate.config.js
+typedoc.json
+
+# Git
+.git/
+.gitignore
+
+# Dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Coverage
+coverage/
+*.lcov
+
+# Build artifacts
+*.tgz
+
+# Environment
+.env*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp

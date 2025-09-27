@@ -1,0 +1,11 @@
+{
+  "extends": "@boostpack/create-library/configs/tsconfig.test",
+  "include": [
+    "src/**/*",
+    "test/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+  ]
+}

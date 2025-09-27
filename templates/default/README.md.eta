@@ -1,0 +1,193 @@
+# <%= it.packageName %>
+
+<% if (it.npmRegistry?.type === 'private') { %>[![NPM Version](https://img.shields.io/badge/npm-private-red)](#)<% } else { %>[![NPM Version](https://img.shields.io/npm/v/<%= it.packageName.replace('@', '%40') %>)](https://www.npmjs.com/package/<%= it.packageName %>)<% } %>
+<% if (it.ci === 'github' && it.githubRepo) { %>[![Build Status](https://img.shields.io/github/actions/workflow/status/<%= it.githubRepo %>/ci.yml?branch=main)](https://github.com/<%= it.githubRepo %>/actions)
+[![Coverage](https://img.shields.io/codecov/c/github/<%= it.githubRepo %>)](https://codecov.io/gh/<%= it.githubRepo %>)
+[![License](https://img.shields.io/github/license/<%= it.githubRepo %>)](https://github.com/<%= it.githubRepo %>/blob/main/LICENSE)<% } else if (it.ci === 'gitlab' && it.gitlabRepo && it.gitlabInstance) { %>[![Pipeline Status](https://<%= it.gitlabInstance %>/<%= it.gitlabRepo %>/badges/main/pipeline.svg)](https://<%= it.gitlabInstance %>/<%= it.gitlabRepo %>/-/pipelines)
+[![Coverage Report](https://<%= it.gitlabInstance %>/<%= it.gitlabRepo %>/badges/main/coverage.svg)](https://<%= it.gitlabInstance %>/<%= it.gitlabRepo %>/-/graphs/main/charts)
+[![License](https://img.shields.io/badge/license-<%= encodeURIComponent(it.license) %>-blue)](./LICENSE)<% } else { %><!-- Replace with your repository badges -->
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](#)
+[![Coverage](https://img.shields.io/badge/coverage-unknown-lightgrey)](#)
+[![License](https://img.shields.io/badge/license-<%= encodeURIComponent(it.license) %>-blue)](./LICENSE)<% } %>
+<% if (it.description) { %>
+
+<%- it.description %><% } else { %>
+
+<!-- Add your library description here --><% } %>
+
+## Installation
+
+```bash
+<%- it.run.install || `${it.packageManager} install` %> <%= it.packageName %>
+```
+
+## Usage
+
+<!-- Replace with real usage examples of your library -->
+
+```typescript
+import { /* your exports */ } from '<%= it.packageName %>';
+
+// Usage example
+// const result = yourFunction();
+// console.log(result);
+```
+
+## API
+
+<!-- Document your API here -->
+
+### `yourFunction(param1, param2?)`
+
+Description of your function.
+
+**Parameters:**
+- `param1` (string) - description of required parameter
+- `param2` (number, optional) - description of optional parameter
+
+**Returns:** description of return value
+
+**Example:**
+```typescript
+const result = yourFunction('example', 42);
+```
+
+## Development
+
+### Prerequisites
+
+- Node.js 22.20.0+ (recommend using `.nvmrc`)
+- <%= it.pmLabel || it.packageManager %>
+
+### Getting Started
+
+1. Clone the repository
+2. Install dependencies: `<%- it.run.install || `${it.packageManager} install` %>`
+3. Build the project: `<%- it.run.build %>`
+4. Run tests: `<%- it.run.testCi %>`
+
+### Available Scripts
+
+- `<%- it.run.build %>` - build the project
+- `<%- it.run.testCi %>` - run tests with coverage
+- `<%- it.run.lintCi %>` - lint the code
+- `<%- it.run.format %>` - format the code
+- `<%- it.run.formatCheck %>` - check code formatting
+
+### Project Structure
+
+```
+<%= it.packageName.split('/').pop() %>/
+├── src/                 # Source code
+│   ├── index.ts        # Main entry point
+│   └── ...             # Your modules
+├── test/               # Tests
+│   └── ...
+├── dist/               # Built files (auto-generated)
+├── coverage/           # Coverage reports (auto-generated)
+<% if (it.ci === 'github') { %>├── .github/workflows/  # GitHub Actions<% } else if (it.ci === 'gitlab') { %>├── .gitlab-ci.yml     # GitLab CI configuration
+├── .gitlab/            # GitLab CI templates<% } %>
+├── package.json
+├── tsconfig.json
+├── jest.config.js
+├── eslint.config.js
+└── README.md
+```
+
+### Configuration Philosophy
+
+This project follows a "configuration by convention" approach:
+
+- **TypeScript**: configuration extends from `@boostpack/create-library`
+- **ESLint**: rules imported from the package
+- **Jest**: testing configuration provided by Boostpack
+- **Rollup**: build configuration re-exported
+- **Prettier**: code formatting rules from the package
+- **Commitlint**: commit message conventions from the package
+- **Semantic Release**: release automation configuration from the package
+- **Renovate**: preset for automated dependency updates
+
+If you need full control, run `<%- it.cliDirect %> eject` to copy base configurations into your repository.
+
+## Conventions
+
+### Conventional Commits
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning:
+
+- `feat:` - new functionality (minor version)
+- `fix:` - bug fixes (patch version)
+- `BREAKING CHANGE:` or `!` - breaking changes (major version)
+- `docs:`, `style:`, `refactor:`, `test:`, `chore:` - no version change
+
+**Examples:**
+```
+feat: add async/await support
+fix: handle null values properly
+feat!: change API for v2 compatibility
+docs: update README with new examples
+```
+
+### Development Workflow
+
+1. Create a branch: `git checkout -b feature/your-feature`
+2. Make changes following conventional commits
+3. Add tests for new functionality
+4. Ensure all tests pass: `<%- it.run.testCi %>`
+5. Check linting: `<%- it.run.lintCi %>`
+6. Create a Pull Request
+
+## Publishing
+
+<% if (it.npmRegistry?.type === 'private') { %>### Private Registry
+
+<% if (it.npmRegistry.gitlabProjectRegistry) { %>The project is configured to publish to GitLab Package Registry. CI automatically uses `CI_JOB_TOKEN` for authentication.
+
+<% } else if (it.npmRegistry.url) { %>The project is configured to publish to private registry: `<%= it.npmRegistry.url %>`
+
+Ensure that `NPM_TOKEN` in CI has publish rights to this registry.
+
+<% } %><% } else { %>### Public Registry
+
+The project is configured to publish to the public npm registry.
+
+<% } %>**Automated Publishing:**
+
+Uses [semantic-release](https://github.com/semantic-release/semantic-release) to automatically:
+- Determine version based on commits
+- Generate changelog
+- Create GitHub/GitLab releases
+- Publish to npm
+
+**CI Setup:**
+
+<% if (it.ci === 'github') { %>1. Add `NPM_TOKEN` secret in GitHub repository settings
+2. Push to main branch will automatically trigger publishing workflow<% } else if (it.ci === 'gitlab') { %>1. Add `NPM_TOKEN` variable in GitLab project (type: Variable, protected)
+2. Push to main branch will automatically trigger publishing pipeline<% } else { %>1. Configure `NPM_TOKEN` in your CI
+2. Set up automatic execution of `<%- it.run.release || 'npm run publish' %>` on main branch push<% } %>
+
+**Manual Publishing:**
+```bash
+<%- it.run.release || 'npm run publish' %>
+```
+
+## Dependency Maintenance
+
+Renovate keeps dependencies up to date using the shared configuration in `renovate.config.js`.
+
+<% if (it.ci === 'github') { %>- Create a fine-grained personal access token with `contents` and `pull_requests` access (or a classic token with the `repo` scope) and add it as the `RENOVATE_TOKEN` repository secret. The scheduled `Renovate` workflow will run daily.
+<% } else if (it.ci === 'gitlab') { %>- Add a masked `RENOVATE_TOKEN` variable with `api` scope (personal or project access token).
+- Create a pipeline schedule for the default branch; the scheduled pipeline will run the `renovate` job.
+- To trigger Renovate manually, start a pipeline with `RENOVATE_RUN=true`.
+<% } else { %>- Run `npx renovate` with credentials for your source control provider as part of CI or a scheduled job.
+<% } %>
+
+## Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md) for a list of changes.
+
+---
+
+<% if (it.author) { %>Made with ❤️ by [<%= it.author %>](<%= it.authorUrl || '#' %>)<% } else { %>Made with ❤️ <!-- Add author information --><% } %>
+
+*This project was bootstrapped with [@boostpack/create-library](https://github.com/boostpack/create-library)*

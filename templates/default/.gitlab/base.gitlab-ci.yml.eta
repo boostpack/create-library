@@ -1,0 +1,182 @@
+# Base CI template from @boostpack/create-library
+# This file can be updated by upgrading @boostpack/create-library
+
+<%
+const pm = it.packageManager ?? 'npm';
+const extraCacheDir = { pnpm: '.pnpm-store/', yarn: '.yarn/cache/' }[pm];
+const registryConfig = (typeof it.npmRegistry === 'object' && it.npmRegistry) || { type: 'public' };
+const registryType = registryConfig.type ?? 'public';
+const registryUrl = registryConfig.url ?? '';
+const useProjectRegistry = Boolean(registryConfig.gitlabProjectRegistry);
+const installCommand =
+  pm === 'pnpm'
+    ? 'pnpm install --frozen-lockfile --prefer-offline --prod=false'
+    : pm === 'yarn'
+      ? 'yarn install --immutable'
+      : 'npm ci';
+let privateRegistryHost = '';
+if (registryUrl) {
+  try {
+    const parsedUrl = new URL(registryUrl);
+    privateRegistryHost = `${parsedUrl.host}${parsedUrl.pathname}`.replace(/\/$/, '');
+  } catch {
+    privateRegistryHost = registryUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  }
+}
+const shouldConfigurePrivateRegistry = registryType === 'private' && !useProjectRegistry && privateRegistryHost;
+const publishScriptLines = [
+  'if [ ! -d node_modules ]; then',
+  `  ${installCommand}`,
+  'fi',
+  `${pm} run publish`,
+];
+%>
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      when: always
+    - if: $CI_COMMIT_TAG
+      when: never
+
+stages:
+  - dependencies
+  - build
+  - quality
+  - publish
+
+variables:
+  NODE_ENV: 'production'
+  VITE_BUILD_ENV: 'production'
+
+renovate:
+  stage: dependencies
+  image: renovate/renovate:39-full
+  variables:
+    LOG_LEVEL: info
+    RENOVATE_PLATFORM: gitlab
+    RENOVATE_GIT_AUTHOR: "Renovate Bot <bot@renovateapp.com>"
+  before_script:
+    - export RENOVATE_ENDPOINT="$CI_API_V4_URL"
+    - export RENOVATE_REPOSITORIES="$CI_PROJECT_PATH"
+  script:
+    - renovate
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $RENOVATE_TOKEN != ""'
+      when: always
+    - if: '$RENOVATE_RUN == "true" && $RENOVATE_TOKEN != ""'
+      when: manual
+    - when: never
+
+.base_job:
+  image: node:22.20.0-alpine3.21
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+<% if (extraCacheDir) { %>
+      - <%= extraCacheDir %>
+<% } %>
+
+<% if (pm === 'pnpm') { %>.base_install: &base_install
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@latest-9 --activate
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --frozen-lockfile --prefer-offline --prod=false
+
+<% } else if (pm === 'yarn') { %>.base_install: &base_install
+  before_script:
+    - corepack enable
+    - corepack prepare yarn@stable --activate
+    - yarn install --frozen-lockfile --prefer-offline
+
+<% } else { %>.base_install: &base_install
+  before_script:
+    - npm ci --prefer-offline
+
+<% } %>build:
+  extends: .base_job
+  <<: *base_install
+  stage: build
+  script:
+    - <%= pm %> run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 hour
+
+lint:
+  extends: .base_job
+  stage: quality
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    policy: pull
+    paths:
+      - node_modules/
+<% if (extraCacheDir) { %>
+      - <%= extraCacheDir %>
+<% } %>
+  script:
+    - <%= pm %> run lint:ci
+  artifacts:
+    reports:
+      codequality: gl-codequality.json
+    expire_in: 1 week
+
+test:
+  extends: .base_job
+  stage: quality
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    policy: pull
+    paths:
+      - node_modules/
+<% if (extraCacheDir) { %>
+      - <%= extraCacheDir %>
+<% } %>
+  script:
+    - <%= pm %> run test:ci
+  coverage: '/Lines\s*:\s*(\d+\.\d+)%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    expire_in: 1 week
+
+publish:
+  extends: .base_job
+  stage: publish
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    policy: pull
+    paths:
+      - node_modules/
+<% if (extraCacheDir) { %>
+      - <%= extraCacheDir %>
+<% } %>
+  variables:
+    GIT_STRATEGY: clone # Fix for semantic-release
+  before_script:
+    - !reference [.base_install, before_script]
+    - apk update && apk add --no-cache bash git openssh
+    - git config --global user.name "$GITLAB_USER_NAME"
+    - git config --global user.email "$GITLAB_USER_EMAIL"
+<% if (useProjectRegistry) { %>    - |
+        {
+          echo "@${CI_PROJECT_ROOT_NAMESPACE}:registry=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/npm/"
+          echo "${CI_API_V4_URL#https?}/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}"
+          echo "${CI_API_V4_URL#https?}/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}"
+        } | tee -a .npmrc
+<% } else if (shouldConfigurePrivateRegistry) { %>    - |
+        {
+          echo "//<%= privateRegistryHost %>/:_authToken=$NPM_TOKEN"
+          echo "registry=<%= registryUrl %>"
+        } >> .npmrc
+<% } %>
+  script:
+<% publishScriptLines.forEach((line) => { %>    - <%= line %>
+<% }); %>
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED == "true"

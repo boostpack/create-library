@@ -1,0 +1,162 @@
+# Base workflow from @boostpack/create-library
+# This file can be updated by upgrading @boostpack/create-library
+<%
+const pm = it.packageManager ?? 'npm';
+const isPnpm = pm === 'pnpm';
+const isYarn = pm === 'yarn';
+const pmCache = isPnpm ? 'pnpm' : isYarn ? 'yarn' : 'npm';
+const installCommand = isPnpm ? 'pnpm install --frozen-lockfile' : isYarn ? 'yarn install --frozen-lockfile' : 'npm ci';
+const runScript = (script) => (isYarn ? `yarn ${script}` : `${pm} run ${script}`);
+const pmSetupStep = isPnpm
+  ? `      - uses: pnpm/action-setup@v4\n        with:\n          version: latest\n`
+  : isYarn
+    ? `      - name: Setup Yarn\n        run: corepack enable\n`
+    : '';
+const registry = it.npmRegistry ?? { type: 'public' };
+const isPrivateRegistry = registry.type === 'private';
+const registryUrl = registry.url ?? '';
+let registryHost = '';
+if (registryUrl) {
+  try {
+    const parsed = new URL(registryUrl);
+    registryHost = `${parsed.host}${parsed.pathname}`.replace(/\/$/, '');
+  } catch {
+    registryHost = registryUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  }
+}
+const registrySetupLines = isPrivateRegistry && registryHost
+  ? [
+      `echo "//${registryHost}/:_authToken=$NPM_TOKEN" >> ~/.npmrc`,
+      `echo "registry=${registryUrl}" >> ~/.npmrc`,
+    ]
+  : [];
+const extraReleaseEnv = isPrivateRegistry ? ['NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}'] : [];
+const cachePaths = isPnpm ? ['node_modules', '~/.pnpm-store'] : isYarn ? ['node_modules', '.yarn/cache'] : ['node_modules'];
+const cachePathLines = cachePaths.map((p) => `          ${p}`).join('\n');
+const lockFile = isPnpm ? 'pnpm-lock.yaml' : isYarn ? 'yarn.lock' : 'package-lock.json';
+const cacheKey = `${isPnpm ? 'pnpm' : isYarn ? 'yarn' : 'node-modules'}-${'${{ runner.os }}'}-${'${{ hashFiles(' + "'" + lockFile + "'" + ') }}'}`;
+const cacheStep = `      - uses: actions/cache@v4\n        id: cache-node-modules\n        with:\n          path: |\n${cachePathLines}\n          key: ${cacheKey}\n`;
+const installIfMissingStep = `      - if: steps.cache-node-modules.outputs.cache-hit != 'true'\n        run: ${installCommand}\n`;
+-%>
+name: Base CI
+
+on:
+  workflow_call:
+
+env:
+  NODE_VERSION_FILE: .nvmrc
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    name: Setup & Install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: <%= pmCache %>
+<%- pmSetupStep %><%- cacheStep %><%- installIfMissingStep %>
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: <%= pmCache %>
+<%- pmSetupStep %><%- cacheStep %><%- installIfMissingStep %>
+      - run: <%= runScript('build') %>
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: <%= pmCache %>
+<%- pmSetupStep %><%- cacheStep %><%- installIfMissingStep %>
+      - run: <%= runScript('lint:ci') %>
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: <%= pmCache %>
+<%- pmSetupStep %><%- cacheStep %><%- installIfMissingStep %>
+      - run: <%= runScript('test:ci') %>
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: true
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [setup, build, lint, test]
+    if: |
+      github.event_name == 'push' && (
+        github.ref == 'refs/heads/main' ||
+        github.ref == 'refs/heads/master' ||
+        github.ref == 'refs/heads/alpha' ||
+        github.ref == 'refs/heads/beta' ||
+        github.ref == 'refs/heads/next' ||
+        github.ref == 'refs/heads/next-major' ||
+        endsWith(github.ref, '.x')
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: <%= pmCache %>
+<%- pmSetupStep %><%- cacheStep %><%- installIfMissingStep %>
+      - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist/
+
+<% if (registrySetupLines.length) { %>      - name: Configure npm registry
+        run: |
+<% registrySetupLines.forEach((line) => { %>          <%= line %>
+<% }); %>
+
+<% } %>      - run: <%= runScript('semantic-release') %>
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+<% extraReleaseEnv.forEach((line) => { %>          <%= line %>
+<% }); %>

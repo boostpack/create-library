@@ -1,0 +1,21 @@
+# GitHub Actions CI for <%= it.packageName %>
+# This file can be edited as needed
+<% const pmCache = ({ pnpm: 'pnpm', yarn: 'yarn' }[it.packageManager ?? 'npm']) ?? 'npm'; -%>
+name: CI
+
+on:
+  push:
+    branches: [main, master, alpha, beta, next, next-major, '*.x', '*.*.x']
+  pull_request:
+    branches:
+      - '**'
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/base.yml
+    secrets: inherit

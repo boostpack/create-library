@@ -1,0 +1,15 @@
+{
+  "extends": "@boostpack/create-library/configs/tsconfig",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+  ]
+}

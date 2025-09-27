@@ -1,0 +1,46 @@
+{
+  "name": "<%= it.packageName %>",
+  "version": "0.0.0",
+  "description": "<%= it.description || 'A Boostpack TypeScript library' %>",
+  "type": "module",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "create-library build",
+    "build:watch": "create-library build --watch",
+    "test": "create-library test",
+    "test:watch": "create-library test --watch",
+    "test:ci": "create-library test --ci",
+    "lint": "create-library lint",
+    "lint:ci": "create-library lint --ci",
+    "format": "create-library format",
+    "format:check": "create-library format --check",
+    "semantic-release": "semantic-release"
+  },
+  "keywords": [<% if (it.keywords) { %>
+<% it.keywords.forEach((keyword, index) => { %>    "<%= keyword %>"<%= index < it.keywords.length - 1 ? ',' : '' %>
+<% }) %><% } %>],
+<% if (it.author) { %>  "author": "<%= it.author %>",<% } %>
+<% if (it.license) { %>  "license": "<%= it.license %>",<% } %><% if (it.repository) { %>
+  "repository": {
+    "type": "git",
+    "url": "<%= it.repository %>"
+  },<% } %>
+  "devDependencies": {
+    "@boostpack/create-library": "^<%= it.libraryScriptsVersion %>"
+  }<% if (it.ci && it.ci !== 'none') { %>,
+  "boostpack": {
+    "ci": "<%= it.ci %>"
+  }<% } %>
+}

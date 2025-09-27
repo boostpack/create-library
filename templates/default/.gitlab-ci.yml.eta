@@ -1,0 +1,8 @@
+# GitLab CI for <%= it.packageName %>
+# This file can be edited as needed
+
+include:
+  # Base CI template from @boostpack/create-library (local copy)
+  - local: '.gitlab/base.gitlab-ci.yml'
+
+# Add additional jobs or override existing ones here
