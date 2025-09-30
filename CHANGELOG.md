@@ -1,3 +1,7 @@
+## 1.0.0-alpha.3 (2025-09-30)
+
+* fix: fix templates path & simplify build ([ccdd3a4](https://github.com/boostpack/create-library/commit/ccdd3a4))
+
 ## 1.0.0-alpha.2 (2025-09-30)
 
 * fix: fix template resolution & cleanup ([63dbd65](https://github.com/boostpack/create-library/commit/63dbd65))
