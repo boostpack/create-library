@@ -1,3 +1,7 @@
+## 1.0.0-alpha.2 (2025-09-30)
+
+* fix: fix template resolution & cleanup ([63dbd65](https://github.com/boostpack/create-library/commit/63dbd65))
+
 ## 1.0.0-alpha.1 (2025-09-30)
 
 * feat: initial commit ([9c315c3](https://github.com/boostpack/create-library/commit/9c315c3))
