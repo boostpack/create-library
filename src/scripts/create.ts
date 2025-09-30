@@ -253,6 +253,14 @@ async function copyTemplate(templateDir: string, targetDir: string) {
   });
 }
 
+async function restoreTemplateArtifacts(targetDir: string) {
+  const npmignoreTemplatePath = path.join(targetDir, '.npmignore.template');
+
+  if (await pathExists(npmignoreTemplatePath)) {
+    await fs.rename(npmignoreTemplatePath, path.join(targetDir, '.npmignore'));
+  }
+}
+
 function getPackageManagerConfig(manager: PackageManager): PackageManagerConfig {
   switch (manager) {
     case 'pnpm':
@@ -817,6 +825,7 @@ async function scaffoldProject(wizardResult: CreateWizardResult, context: Comman
   logger.info(`\nScaffolding Boostpack library in ${path.relative(cwd, targetDir) || '.'}`);
 
   await copyTemplate(templateDir, targetDir);
+  await restoreTemplateArtifacts(targetDir);
 
   const params = {
     targetDir,
