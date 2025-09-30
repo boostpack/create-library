@@ -1,5 +1,3 @@
-# @boostpack/create-library
-
 🚀 Launch production-grade TypeScript libraries in minutes. 
 
 `@boostpack/create-library` hands you a curated toolchain behind a

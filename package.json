@@ -29,14 +29,16 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./config/rollup": "./dist/configs/rollup.config.js",
-    "./config/jest": "./dist/configs/jest.config.js",
-    "./config/eslint": "./dist/configs/eslint.config.js",
     "./config/commitlint": "./dist/configs/commitlint.config.js",
-    "./config/tsconfig": "./dist/configs/tsconfig.json",
+    "./config/eslint": "./dist/configs/eslint.config.js",
+    "./config/jest": "./dist/configs/jest.config.js",
+    "./config/prettier": "./dist/configs/prettier.config.js",
+    "./config/release": "./dist/configs/release.config.js",
+    "./config/renovate": "./dist/configs/renovate.config.js",
+    "./config/rollup": "./dist/configs/rollup.config.js",
     "./config/tsconfig.build": "./dist/configs/tsconfig.build.json",
-    "./config/tsconfig.test": "./dist/configs/tsconfig.test.json",
-    "./renovate.config": "./dist/renovate.config.js"
+    "./config/tsconfig": "./dist/configs/tsconfig.json",
+    "./config/tsconfig.test": "./dist/configs/tsconfig.test.json"
   },
   "files": [
     "bin",
