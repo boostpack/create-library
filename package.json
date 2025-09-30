@@ -41,6 +41,7 @@
   "files": [
     "bin",
     "dist",
+    "templates",
     "README.md",
     "LICENSE"
   ],

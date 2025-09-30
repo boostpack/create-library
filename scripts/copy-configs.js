@@ -5,11 +5,6 @@ const path = require('path');
 
 function copyRecursive(source, destination) {
   const stats = fs.statSync(source);
-
-  if (stats.isFile() && source.endsWith('.eta')) {
-    return;
-  }
-
   if (stats.isDirectory()) {
     if (!fs.existsSync(destination)) {
       fs.mkdirSync(destination, { recursive: true });
@@ -29,12 +24,7 @@ const copyJobs = [
   {
     source: path.join(__dirname, '../src/config'),
     destination: path.join(__dirname, '../dist/config'),
-    label: 'configs',
-  },
-  {
-    source: path.join(__dirname, '../templates'),
-    destination: path.join(__dirname, '../dist/templates'),
-    label: 'templates',
+    label: 'config',
   },
 ];
 
@@ -44,17 +34,7 @@ copyJobs.forEach(({ source, destination, label }) => {
   }
 
   copyRecursive(source, destination);
+
   // eslint-disable-next-line no-console
   console.log(`Copied ${label} assets to ${path.relative(process.cwd(), destination)}`);
 });
-
-const esmDir = path.join(__dirname, '../dist/esm');
-const esmPackageJsonPath = path.join(esmDir, 'package.json');
-
-if (!fs.existsSync(esmDir)) {
-  fs.mkdirSync(esmDir, { recursive: true });
-}
-
-fs.writeFileSync(esmPackageJsonPath, `${JSON.stringify({ type: 'module' }, null, 2)}\n`, 'utf8');
-// eslint-disable-next-line no-console
-console.log(`Ensured ${path.relative(process.cwd(), esmPackageJsonPath)} declares type module`);
