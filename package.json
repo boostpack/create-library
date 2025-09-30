@@ -1,6 +1,6 @@
 {
   "name": "@boostpack/create-library",
-  "version": "0.0.0",
+  "version": "1.0.0-alpha.1",
   "description": "Build scripts and dependencies for Boostpack TypeScript libraries",
   "keywords": [
     "typescript",
