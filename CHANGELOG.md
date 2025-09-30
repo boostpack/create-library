@@ -1,3 +1,8 @@
+## 1.0.0-alpha.4 (2025-09-30)
+
+* chore: cleanup ([5646c16](https://github.com/boostpack/create-library/commit/5646c16))
+* fix: fix .npmginore template ([5fef117](https://github.com/boostpack/create-library/commit/5fef117))
+
 ## 1.0.0-alpha.3 (2025-09-30)
 
 * fix: fix templates path & simplify build ([ccdd3a4](https://github.com/boostpack/create-library/commit/ccdd3a4))
